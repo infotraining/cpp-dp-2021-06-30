@@ -41,10 +41,11 @@ using LoggerFactory = std::unordered_map<std::string, shared_ptr<LoggerCreator>>
 
 int main()
 {
-    LoggerFactory logger_factory;
+    LoggerFactory logger_factory;  
     logger_factory.insert(make_pair("ConsoleLogger", make_shared<ConsoleLoggerCreator>()));
     logger_factory.insert(make_pair("FileLogger", make_shared<FileLoggerCreator>("data.log")));
+    logger_factory.insert(make_pair("DbLogger", make_shared<DbLoggerCreator>("DbWithLogs")));
 
-    Service srv(logger_factory.at("ConsoleLogger"));
+    Service srv(logger_factory.at("DbLogger"));
     srv.run();
 }

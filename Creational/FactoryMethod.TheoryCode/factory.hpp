@@ -22,7 +22,7 @@ class FileLogger : public Logger
 
 public:
     FileLogger(const std::string& logname)
-        : log_file_{logname, std::ios::app}
+        : log_file_ {logname, std::ios::app}
     {
     }
 
@@ -42,6 +42,22 @@ public:
     }
 };
 
+class DbLogger : public Logger
+{
+    std::string connection_str_;
+
+public:
+    DbLogger(std::string connection_str) : connection_str_{std::move(connection_str)}
+    {}
+
+    void log(const std::string& msg) override
+    {
+        std::cout << "Open connection with " << connection_str_ << "\n";
+        std::cout << "INSERT INTO Log('" << msg << ")\n";
+        std::cout << "Close connection: " << connection_str_ << "\n";
+    }
+};
+
 // "Creator"
 class LoggerCreator
 {
@@ -57,7 +73,7 @@ class FileLoggerCreator : public LoggerCreator
 
 public:
     FileLoggerCreator(const std::string& file_name)
-        : file_name_{file_name}
+        : file_name_ {file_name}
     {
     }
 
@@ -74,6 +90,22 @@ public:
     virtual std::unique_ptr<Logger> create_logger() override
     {
         return std::make_unique<ConsoleLogger>();
+    }
+};
+
+class DbLoggerCreator : public LoggerCreator
+{
+    std::string conn_str_;
+
+public:
+    DbLoggerCreator(std::string conn_str)
+        : conn_str_ {std::move(conn_str)}
+    {
+    }
+
+    std::unique_ptr<Logger> create_logger() override
+    {
+        return std::make_unique<DbLogger>(conn_str_);
     }
 };
 

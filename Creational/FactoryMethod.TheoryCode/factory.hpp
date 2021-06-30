@@ -2,6 +2,7 @@
 #define FACTORY_HPP_
 
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -47,8 +48,10 @@ class DbLogger : public Logger
     std::string connection_str_;
 
 public:
-    DbLogger(std::string connection_str) : connection_str_{std::move(connection_str)}
-    {}
+    DbLogger(std::string connection_str)
+        : connection_str_ {std::move(connection_str)}
+    {
+    }
 
     void log(const std::string& msg) override
     {
@@ -58,55 +61,60 @@ public:
     }
 };
 
+using LoggerCreator = std::function<std::unique_ptr<Logger>()>;
+
 // "Creator"
-class LoggerCreator
+namespace Canonical
 {
-public:
-    virtual std::unique_ptr<Logger> create_logger() = 0; // factory method
-    virtual ~LoggerCreator() = default;
-};
-
-// "ConcreteCreatorA"
-class FileLoggerCreator : public LoggerCreator
-{
-    std::string file_name_;
-
-public:
-    FileLoggerCreator(const std::string& file_name)
-        : file_name_ {file_name}
+    class LoggerCreator
     {
-    }
+    public:
+        virtual std::unique_ptr<Logger> create_logger() = 0; // factory method
+        virtual ~LoggerCreator() = default;
+    };
 
-    virtual std::unique_ptr<Logger> create_logger() override
+    // "ConcreteCreatorA"
+    class FileLoggerCreator : public LoggerCreator
     {
-        return std::make_unique<FileLogger>(file_name_);
-    }
-};
+        std::string file_name_;
 
-// "ConcreteCreatorB"
-class ConsoleLoggerCreator : public LoggerCreator
-{
-public:
-    virtual std::unique_ptr<Logger> create_logger() override
+    public:
+        FileLoggerCreator(const std::string& file_name)
+            : file_name_ {file_name}
+        {
+        }
+
+        virtual std::unique_ptr<Logger> create_logger() override
+        {
+            return std::make_unique<FileLogger>(file_name_);
+        }
+    };
+
+    // "ConcreteCreatorB"
+    class ConsoleLoggerCreator : public LoggerCreator
     {
-        return std::make_unique<ConsoleLogger>();
-    }
-};
+    public:
+        virtual std::unique_ptr<Logger> create_logger() override
+        {
+            return std::make_unique<ConsoleLogger>();
+        }
+    };
 
-class DbLoggerCreator : public LoggerCreator
-{
-    std::string conn_str_;
-
-public:
-    DbLoggerCreator(std::string conn_str)
-        : conn_str_ {std::move(conn_str)}
+    class DbLoggerCreator : public LoggerCreator
     {
-    }
+        std::string conn_str_;
 
-    std::unique_ptr<Logger> create_logger() override
-    {
-        return std::make_unique<DbLogger>(conn_str_);
-    }
-};
+    public:
+        DbLoggerCreator(std::string conn_str)
+            : conn_str_ {std::move(conn_str)}
+        {
+        }
+
+        std::unique_ptr<Logger> create_logger() override
+        {
+            return std::make_unique<DbLogger>(conn_str_);
+        }
+    };
+}
 
 #endif /*FACTORY_HPP_*/

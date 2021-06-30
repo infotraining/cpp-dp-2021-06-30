@@ -10,12 +10,12 @@ using namespace std;
 
 class Service
 {
-    shared_ptr<LoggerCreator> creator_;
+    LoggerCreator logger_creator_;
     bool is_started_ = false;
 
 public:
-    Service(shared_ptr<LoggerCreator> creator)
-        : creator_(creator)
+    Service(const LoggerCreator& creator)
+        : logger_creator_(creator)
     {
     }
 
@@ -24,7 +24,7 @@ public:
 
     void run()
     {
-        unique_ptr<Logger> logger = creator_->create_logger();
+        unique_ptr<Logger> logger = logger_creator_();
         if (!is_started_)
             start();
             logger->log("Service has been started...");
@@ -37,15 +37,60 @@ protected:
     virtual void process_requests() {}
 };
 
-using LoggerFactory = std::unordered_map<std::string, shared_ptr<LoggerCreator>>;
+using LoggerFactory = std::unordered_map<std::string, LoggerCreator>;
+
+void foo()
+{
+    std::cout << "foo()\n";
+}
+
+class Foo
+{
+public:
+    void operator()()
+    {
+        std::cout << "Foo::operator()\n";
+    }
+
+    void bar()
+    {
+        std::cout << "Foo::bar()\n";
+    }
+};
 
 int main()
 {
     LoggerFactory logger_factory;  
-    logger_factory.insert(make_pair("ConsoleLogger", make_shared<ConsoleLoggerCreator>()));
-    logger_factory.insert(make_pair("FileLogger", make_shared<FileLoggerCreator>("data.log")));
-    logger_factory.insert(make_pair("DbLogger", make_shared<DbLoggerCreator>("DbWithLogs")));
+    logger_factory.insert(make_pair("ConsoleLogger", std::make_unique<ConsoleLogger>));
+    logger_factory.insert(make_pair("FileLogger", [] { return std::make_unique<FileLogger>("data.log"); }));
+    logger_factory.insert(make_pair("DbLogger", [] { return std::make_unique<DbLogger>("DbWithLogs"); }));
 
     Service srv(logger_factory.at("DbLogger"));
     srv.run();
+
+    ////////////////////////////////////////////
+    void (*fun_ptr)() = &foo;
+    void (Foo::*method_ptr)() = &Foo::bar;
+    Foo foo_obj{};
+    (foo_obj.*method_ptr)(); // foo.obj.bar();
+    
+    std::function<void()> f;
+    f = foo; // stores function
+    f();
+    f = fun_ptr; // stores pointer to function
+    f();
+    f = Foo{}; // stores functor
+    //fun_ptr = Foo{};
+    f();
+    int x = 42;
+    f = [x]() { std::cout << "Lambda with captured " << x << "\n"; }; // stores closure
+    f();
+
+    std::function<void (Foo&)> fm = &Foo::bar; // stores pointer to member function
+    fm(foo_obj);
+
+    f = [&foo_obj]{ foo_obj.bar(); };
+    f();
 }
+
+

@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <list>
 
 #include "factory.hpp"
 
@@ -91,6 +92,19 @@ int main()
 
     f = [&foo_obj]{ foo_obj.bar(); };
     f();
+
+    std::vector<int> vec = {1, 2, 3};
+
+    for(const auto& item : vec)
+    {
+        std::cout << item << "\n";
+    }
+
+    for(auto it = vec.begin(); it != vec.end(); ++it) // vec.begin() & vec.end() are factory methods
+    {
+        std::cout << *it << " ";
+    }
+    std::cout << "\n";
 }
 
 

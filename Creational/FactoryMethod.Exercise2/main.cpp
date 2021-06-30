@@ -83,6 +83,16 @@ int main()
 {
     cout << "Start..." << endl;
 
+    // ShapeFactory shape_factory;
+    // shape_factory.register_creator(Drawing::Rectangle::id, std::make_unique<Rectangle>);
+    // shape_factory.register_creator(Drawing::Square::id, std::make_unique<Square>);
+    // shape_factory.register_creator(Drawing::Circle::id, std::make_unique<Circle>);
+
+    // ShapeRWFactory shape_rw_factory;
+    // shape_rw_factory.register_creator(make_type_index<Drawing::Rectangle>(), std::make_unique<Drawing::IO::RectangleReaderWriter>);
+    // shape_rw_factory.register_creator(make_type_index<Drawing::Square>(), std::make_unique<Drawing::IO::SquareReaderWriter>);
+    // shape_rw_factory.register_creator(make_type_index<Drawing::Circle>(), std::make_unique<Drawing::IO::CircleReaderWriter>);
+
     GraphicsDoc doc(SingletonShapeFactory::instance(), SingletonShapeRWFactory::instance());
 
     doc.load("drawing.txt");

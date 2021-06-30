@@ -6,7 +6,10 @@
 #include <string>
 #include <unordered_map>
 
-template <typename ProductType, typename TypeId = std::string, typename CreatorType = std::function<std::unique_ptr<ProductType>()>>
+template <
+    typename ProductType, 
+    typename TypeId = std::string, 
+    typename CreatorType = std::function<std::unique_ptr<ProductType>()>>
 class GenericFactory
 {
     std::unordered_map<TypeId, CreatorType> creators_;

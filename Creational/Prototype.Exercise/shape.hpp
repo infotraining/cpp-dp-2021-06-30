@@ -14,7 +14,18 @@ namespace Drawing
         virtual std::unique_ptr<Shape> clone() const = 0;
     };
 
-    class ShapeBase : public Shape
+    template <typename ShapeT, typename ShapeBaseT = Shape>
+    class CopyableShape : public ShapeBaseT
+    {
+    public:
+        std::unique_ptr<Shape> clone() const override
+        {
+            return std::make_unique<ShapeT>(*static_cast<const ShapeT*>(this));
+        }
+    };
+
+    template <typename ShapeT>
+    class ShapeBase : public CopyableShape<ShapeT>
     {
         Point coord_; // composition
     public:

@@ -14,7 +14,18 @@ public:
     virtual ~Engine() = default;
 };
 
-class Diesel : public Engine
+// CRTP type providing implementation clone()
+template <typename TEngine, typename TBaseEngine = Engine>
+class CloneableEngine : public TBaseEngine
+{
+public:
+    std::unique_ptr<Engine> clone() const override
+    {
+        return std::make_unique<TEngine>(static_cast<const TEngine&>(*this));
+    }
+};
+
+class Diesel : public CloneableEngine<Diesel>
 {
 public:
     virtual void start() override
@@ -26,14 +37,9 @@ public:
     {
         cout << "Diesel stops\n";
     }
-
-    std::unique_ptr<Engine> clone() const override
-    {
-        return std::make_unique<Diesel>(*this); // call of copy constructor
-    }
 };
 
-class TDI : public Diesel
+class TDI : public CloneableEngine<TDI, Diesel>
 {
 public:
     virtual void start() override
@@ -45,14 +51,9 @@ public:
     {
         cout << "TDI stops\n";
     }
-        
-    std::unique_ptr<Engine> clone() const override
-    {
-        return std::make_unique<TDI>(*this); // call of copy constructor
-    }
 };
 
-class Hybrid : public Engine
+class Hybrid : public CloneableEngine<Hybrid>
 {
 public:
     virtual void start() override
@@ -63,11 +64,6 @@ public:
     virtual void stop() override
     {
         cout << "Hybrid stops\n";
-    }
-
-    std::unique_ptr<Engine> clone() const override
-    {
-        return std::make_unique<Hybrid>(*this); // call of copy constructor
     }
 };
 

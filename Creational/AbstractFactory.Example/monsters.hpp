@@ -25,6 +25,8 @@ namespace Game
     {
     };
 
+    //////////////////////////////////////////////
+    // Level 1 - Silly
     class SillySoldier : public Soldier
     {
     public:
@@ -52,6 +54,9 @@ namespace Game
         }
     };
 
+
+    //////////////////////////////////////////////
+    // Level 2 - Silly
     class BadSoldier : public Soldier
     {
     public:

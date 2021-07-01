@@ -103,7 +103,7 @@ public:
 
 int main()
 {
-    Car c1{make_unique<Hybrid>()};
+    Car c1{make_unique<TDI>()};
     c1.drive(100);
 
     cout << "\n";

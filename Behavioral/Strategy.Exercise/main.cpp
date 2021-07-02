@@ -185,7 +185,6 @@ namespace ModernCpp
 
 int main()
 {
-
     auto std_stats = std::make_shared<AgregateCalculator>();
     std_stats->add_calculator(std::make_shared<AvgCalculator>());
     std_stats->add_calculator(std::make_shared<MinMaxCalculator>());

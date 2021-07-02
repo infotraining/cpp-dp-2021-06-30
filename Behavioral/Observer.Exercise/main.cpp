@@ -2,16 +2,31 @@
 
 using namespace std;
 
+// Observer
+class Investor 
+{
+    std::string name_;
+
+public:
+    Investor(const std::string& name) : name_(name)
+    {
+    }
+
+    void update(/*...*/)
+    {
+        // TODO
+    }
+};
+
 int main()
 {
     Stock misys("Misys", 340.0);
     Stock ibm("IBM", 245.0);
     Stock tpsa("TPSA", 95.0);
 
-    // rejestracja inwestorow zainteresowanych powiadomieniami o zmianach kursu spolek
+    // Create some investors and register them as observers to stock price changes
     // TODO:
 
-    // zmian kursow
     misys.set_price(360.0);
     ibm.set_price(210.0);
     tpsa.set_price(45.0);

@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <memory>
+#include <functional>
 
 struct StatResult
 {
@@ -30,15 +32,80 @@ enum StatisticsType
     sum
 };
 
+class Calculator
+{
+    public:
+        virtual ~Calculator() = default;
+        virtual void calculate(const Data& data_, Results& results_) = 0;
+};
+
+class AvgCalculator : public Calculator
+{
+    public:
+        void calculate(const Data& data_, Results& results_) override
+        {
+            double sum = std::accumulate(data_.begin(), data_.end(), 0.0);
+            double avg = data_.size() ? sum / data_.size() : 0;
+
+            StatResult result("Avg", avg);
+            results_.push_back(result);
+        }
+};
+
+class MinMaxCalculator : public Calculator
+{
+    public:
+        void calculate(const Data& data_, Results& results_) override
+        {
+            double min = *(std::min_element(data_.begin(), data_.end()));
+            double max = *(std::max_element(data_.begin(), data_.end()));
+
+            results_.push_back(StatResult("Min", min));
+            results_.push_back(StatResult("Max", max));
+        }
+};
+
+class SumCalculator : public Calculator
+{
+    public:
+        void calculate(const Data& data_, Results& results_) override
+        {
+            double sum = std::accumulate(data_.begin(), data_.end(), 0.0);
+
+            results_.push_back(StatResult("Sum", sum));
+        }
+};
+
+// Composite
+
+class AgregateCalculator : public Calculator
+{
+    std::vector<std::shared_ptr<Calculator>> calculators_;
+
+public:
+    void calculate(const Data& data_, Results& results_) override
+    {
+        for (auto const& calc : calculators_)
+        {
+            calc->calculate(data_, results_);
+        }
+    }
+    void add_calculator(std::shared_ptr<Calculator> calc)
+    {
+        calculators_.push_back(calc);
+    }
+};
+
 class DataAnalyzer
 {
-    StatisticsType stat_type_;
+    //StatisticsType stat_type_;
+    std::shared_ptr<Calculator> calculator_;
     Data data_;
     Results results_;
 
 public:
-    DataAnalyzer(StatisticsType stat_type)
-        : stat_type_{stat_type}
+    DataAnalyzer(std::shared_ptr<Calculator> calculator)
+        : calculator_{calculator}
     {
     }
 
@@ -60,35 +127,14 @@ public:
         std::cout << "File " << file_name << " has been loaded...\n";
     }
 
-    void set_statistics(StatisticsType stat_type)
+    void set_statistics(std::shared_ptr<Calculator> calculator)
     {
-        stat_type_ = stat_type;
+        calculator_ = calculator;
     }
 
     void calculate()
     {
-        if (stat_type_ == avg)
-        {
-            double sum = std::accumulate(data_.begin(), data_.end(), 0.0);
-            double avg = sum / data_.size();
-
-            StatResult result("Avg", avg);
-            results_.push_back(result);
-        }
-        else if (stat_type_ == min_max)
-        {
-            double min = *(std::min_element(data_.begin(), data_.end()));
-            double max = *(std::max_element(data_.begin(), data_.end()));
-
-            results_.push_back(StatResult("Min", min));
-            results_.push_back(StatResult("Max", max));
-        }
-        else if (stat_type_ == sum)
-        {
-            double sum = std::accumulate(data_.begin(), data_.end(), 0.0);
-
-            results_.push_back(StatResult("Sum", sum));
-        }
+        calculator_->calculate(data_, results_);
     }
 
     const Results& results() const
@@ -103,25 +149,56 @@ void show_results(const Results& results)
         std::cout << rslt.description << " = " << rslt.value << std::endl;
 }
 
+namespace ModernCpp
+{
+    using Statistics = std::function<Results (const Data& data)>;
+
+    class Avg
+    {
+    public:
+        Results operator()(const Data &data)
+        {
+            double sum = std::accumulate(data.begin(), data.end(), 0.0);
+            double avg = data.size() ? sum / data.size() : 0;
+
+            return { {"AVG", avg} };
+        }
+    };
+
+    class DataAnalyzer
+    {
+        Statistics statistics_;
+        Data data_;
+    public:
+
+        void set_statistics(Statistics new_stat)
+        {
+            statistics_ = new_stat;
+        }
+
+        void calculate()
+        {
+            auto results = statistics_(data_); // delegation to strategy
+        }
+    };
+}
+
 int main()
 {
-    DataAnalyzer da{avg};
+
+    auto std_stats = std::make_shared<AgregateCalculator>();
+    std_stats->add_calculator(std::make_shared<AvgCalculator>());
+    std_stats->add_calculator(std::make_shared<MinMaxCalculator>());
+    std_stats->add_calculator(std::make_shared<SumCalculator>());
+
+    DataAnalyzer da{std_stats};
     da.load_data("data.dat");
-
     da.calculate();
-
-    da.set_statistics(min_max);
-    da.calculate();
-
-    da.set_statistics(sum);
-    da.calculate();
-
     show_results(da.results());
 
     std::cout << "\n\n";
 
     da.load_data("new_data.dat");
     da.calculate();
-
     show_results(da.results());
 }

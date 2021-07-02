@@ -64,7 +64,7 @@ public:
     }
 };
 
-// "Context"
+// "Context" - dynamic polymorphism
 class DataContext
 {
     std::shared_ptr<Formatter> strategy_;
@@ -83,6 +83,36 @@ public:
     void pretty_print()
     {
         std::cout << "Data: " << strategy_->format(data_) << std::endl;
+    }
+
+    std::string data() const
+    {
+        return data_;
+    }
+
+    void set_data(const std::string& data)
+    {
+        data_ = data;
+    }
+};
+
+
+template <typename TFormatter>
+class FormattedContext
+{
+    std::string data_ = "text";
+
+public:
+    FormattedContext() = default;
+
+    void reset_formatter(std::shared_ptr<Formatter> new_strategy)
+    {
+        strategy_ = new_strategy;
+    }
+
+    void pretty_print()
+    {
+        std::cout << "Data: " << TFormatter{}.format(data_) << std::endl;
     }
 
     std::string data() const

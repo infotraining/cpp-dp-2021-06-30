@@ -3,15 +3,7 @@
 
 #include <iostream>
 #include <string>
-
-class Observer
-{
-public:
-    virtual void update(/*...*/) = 0;
-    virtual ~Observer()
-    {
-    }
-};
+#include "observer.hpp"
 
 // Subject
 class Stock
@@ -19,7 +11,6 @@ class Stock
 private:
     std::string symbol_;
     double price_;
-    // TODO - kontener przechowywujacy obserwatorow
 public:
     Stock(const std::string& symbol, double price) : symbol_(symbol), price_(price)
     {
@@ -35,30 +26,11 @@ public:
         return price_;
     }
 
-    // TODO: rejestracja obserwatora
-
-    // TODO: wyrejestrowanie obserwatora
-
     void set_price(double price)
     {
         price_ = price;
 
-        // TODO: powiadomienie inwestorow o zmianie kursu...
-    }
-};
-
-class Investor : public Observer
-{
-    std::string name_;
-
-public:
-    Investor(const std::string& name) : name_(name)
-    {
-    }
-
-    void update(/*...*/)
-    {
-        // TODO: implementacja
+        // TODO: sending notification to all observers
     }
 };
 

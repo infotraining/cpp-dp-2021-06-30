@@ -1,22 +1,24 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-//#include <boost/flyweight.hpp>
+#include <boost/flyweight.hpp>
 #include <boost/algorithm/string.hpp>
 
 using namespace std;
 
+struct first_name_pool {};
+
 class Taxpayer
 {
     int id_;
-    std::string first_name_;
-    std::string last_name_;
+    boost::flyweight<std::string, boost::flyweights::tag<first_name_pool>> first_name_;
+    boost::flyweight<std::string> last_name_;
 
 public:
-    Taxpayer(int id, const string& imie, const string& nazwisko)
+    Taxpayer(int id, const string& first_name, const string& last_name)
         : id_(id)
-        , first_name_(imie)
-        , last_name_(nazwisko)
+        , first_name_(first_name)
+        , last_name_(last_name)
     {
     }
 
@@ -30,15 +32,15 @@ public:
         return first_name_;
     }
 
-    void set_first_name(const string& imie)
+    void set_first_name(const string& first_name)
     {
-        first_name_ = imie;
+        first_name_ = first_name;
     }
 
     void to_upper()
     {
-        boost::to_upper(first_name_);
-        boost::to_upper(last_name_);
+        first_name_ = boost::to_upper_copy(first_name_.get());
+        last_name_ = boost::to_upper_copy(last_name_.get());
     }
 
     string last_name() const
@@ -46,9 +48,9 @@ public:
         return last_name_;
     }
 
-    void set_last_name(const string& nazwisko)
+    void set_last_name(const string& last_name)
     {
-        last_name_ = nazwisko;
+        last_name_ = last_name;
     }
 
     bool operator==(const Taxpayer& p)

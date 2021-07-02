@@ -29,7 +29,5 @@ int main()
 
     ClientApplication c{image_filenames, &std::make_unique<LazyBitmap, std::string>};
 
-    c.render(0);
-    c.render(1);
     c.render(2);
 }
